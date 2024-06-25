@@ -1,29 +1,39 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 trigger:
 - master
 
 pool:
   name: Local Agent 
 
+strategy:
+  matrix:
+    Python310:
+      python.version: '3.10'
+    Python311:
+      python.version: '3.11'
+    Python312:
+      python.version: '3.12'
+
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.x'
-    architecture: 'x64'
-- task: NodeTool@0
-  inputs:
-    versionSpec: '14.x'
-  displayName: 'Install Node.js'
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+    
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install dependencies'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'Instalar dependencias y construir'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '14.x'
+    displayName: 'Install Node.js'
 
-- script: |
-    npm test
-  displayName: 'Ejecutar pruebas'
+  - script: |
+      npm install
+      npm run build
+    displayName: 'Install dependencies and build'
+
+  - script: |
+      npm test
+    displayName: 'Run tests'
